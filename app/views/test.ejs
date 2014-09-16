@@ -1,0 +1,156 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>bizcardmaker api</title>
+</head>
+<body>
+
+  <button id="get-user" type="button">Get User</button>
+  <button id="get-offers" type="button">Get Offers</button>
+  <button id="get-shipping" type="button">Get Shipping</button>
+  <button id="set-order" type="button">Set Order</button>
+
+  <script>
+    // base64 batman
+    var batman64 = 'data:image/jpeg;base64,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';
+
+    var config = {
+      apiUrl: '/api/v1'
+    };
+
+    var data = {
+      user: {
+        email: 'test@bizcardmaker.com',
+        name: 'Test'
+      },
+      order: {
+        billing: {
+          name:   'John Doe',
+          phone: '15192223333',
+          address: {
+            street:      '123 Main St.',
+            street2:     '',
+            city:        'Springfield',
+            region:      'KY',
+            country:     'United States',
+            postal_code: '40069'
+          },
+          credit_card: {
+            number:       4030000010001234,
+            verification: 123,
+            expiry: {
+              month: 6,
+              year:  2016
+            }
+          }
+        },
+        shipping:  {
+          name:   'John Doe',
+          phone: '15192223333',
+          address: {
+            street:      '123 Main St.',
+            street2:     '',
+            city:        'Springfield',
+            region:      'KY',
+            country:     'United States',
+            postal_code: '40069'
+          }
+        }
+      }
+    };
+
+    data.order.user = data.user;
+    data.order.image = batman64;
+
+    var getUser = function() {
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', config.apiUrl + '/users?email=test@bizcardmaker.com&name=Test');
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+      xhr.addEventListener('load', function() {
+        if(xhr.status == 200) {
+          console.log('Success=', xhr.responseText);
+        } else {
+          console.log('Error=', xhr.responseText);
+        }
+      });
+
+      xhr.send();
+
+    };
+
+    var getOffers = function() {
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', config.apiUrl + '/offers');
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+      xhr.addEventListener('load', function() {
+        if(xhr.status == 200) {
+
+          data.order.offer = {};
+          data.order.offer.id = JSON.parse(xhr.responseText).offers[0].id;
+          data.order.billing.amount = JSON.parse(xhr.responseText).offers[0].amount;
+
+          console.log('Success=', xhr.responseText);
+        } else {
+          console.log('Error=', xhr.responseText);
+        }
+      });
+
+      xhr.send();
+
+    };
+
+    var getShipping = function() {
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', config.apiUrl + '/shipping');
+      xhr.setRequestHeader('Content-type', 'application/json');
+
+      xhr.addEventListener('load', function() {
+        if(xhr.status == 200) {
+          console.log('Success=', xhr.responseText);
+        } else {
+          console.log('Error=', xhr.responseText);
+        }
+      });
+
+      var shippingData = {
+        offer: data.order.offer,
+        address: data.order.shipping.address
+      };
+
+      xhr.send(JSON.stringify(shippingData));
+
+    };
+
+    var setOrder = function() {
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', config.apiUrl + '/orders');
+      xhr.setRequestHeader('Content-type', 'application/json');
+
+      xhr.addEventListener('load', function() {
+        if(xhr.status == 200) {
+          console.log('Success=', xhr.responseText);
+        } else {
+          console.log('Error=', xhr.responseText);
+        }
+      });
+
+      xhr.send(JSON.stringify(data.order));
+
+    };
+
+    document.getElementById('get-user').addEventListener('click', getUser);
+    document.getElementById('get-offers').addEventListener('click', getOffers);
+    document.getElementById('get-shipping').addEventListener('click', getShipping);
+    document.getElementById('set-order').addEventListener('click', setOrder);
+  </script>
+
+</body>
+</html>

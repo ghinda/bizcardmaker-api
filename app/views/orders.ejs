@@ -1,0 +1,412 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>bizcardmaker api</title>
+
+  <link rel="stylesheet" href="/bower_components/foundation/css/normalize.css">
+  <link rel="stylesheet" href="/bower_components/foundation/css/foundation.css">
+
+  <style>
+
+    table {
+      width: 100%;
+    }
+
+    .row {
+      max-width: 1120px;
+    }
+
+  </style>
+
+</head>
+<body>
+
+  <nav class="top-bar" data-topbar>
+    <ul class="title-area">
+      <li class="name">
+        <h1>
+          <a href="/">bizcardmaker API</a>
+        </h1>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="row">
+    <div class="small-12 columns">
+
+      <dl class="tabs" data-tab>
+        <dd class="active">
+          <a href="#days30">
+            Last 30 days
+          </a>
+        </dd>
+        <dd>
+          <a href="#this-month">
+            This month
+          </a>
+        </dd>
+        <dd>
+          <a href="#totals-this-month">
+            Totals this month
+          </a>
+        </dd>
+        <dd>
+          <a href="#last-month">
+            Last month
+          </a>
+        </dd>
+        <dd>
+          <a href="#totals-last-month">
+            Totals last month
+          </a>
+        </dd>
+        <dd>
+          <a href="#users">
+            Users
+          </a>
+        </dd>
+        <dd>
+          <a href="#all-orders">
+            All orders
+          </a>
+        </dd>
+      </dl>
+
+      <div class="tabs-content">
+
+        <div class="content active" id="days30">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Date
+                </td>
+                <td>
+                  User ID
+                </td>
+                <td>
+                  Name
+                </td>
+                <td>
+                  Email
+                </td>
+                <td>
+                  PDF
+                </td>
+                <td>
+                  Offer ID
+                </td>
+                <td>
+                  Offer title
+                </td>
+                <td>
+                  Offer price
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% orders.forEach(function(order, index) { %>
+                <%- include order-row.ejs %>
+              <% }) %>
+            </tbody>
+          </table>
+
+        </div>
+
+        <div class="content" id="this-month">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Date
+                </td>
+                <td>
+                  User ID
+                </td>
+                <td>
+                  Name
+                </td>
+                <td>
+                  Email
+                </td>
+                <td>
+                  PDF
+                </td>
+                <td>
+                  Offer ID
+                </td>
+                <td>
+                  Offer title
+                </td>
+                <td>
+                  Offer price
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% ordersThisMonth.forEach(function(order, index) { %>
+                <%- include order-row.ejs %>
+              <% }) %>
+            </tbody>
+          </table>
+
+        </div>
+
+        <div class="content" id="totals-this-month">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Offer ID
+                </td>
+                <td>
+                  Price
+                </td>
+                <td>
+                  Number of orders
+                </td>
+                <td>
+                  Earnings
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% Object.keys(offers).forEach(function(offerId) { %>
+                <% if(offers[offerId].totalThisMonth > 0) { %>
+                  <tr>
+                    <td>
+                      <%= offerId %>
+                    </td>
+
+                    <td>
+                      <%= (offers[offerId].amount.total / 100).toFixed(2) %>
+                    </td>
+
+                    <td>
+                      <%= offers[offerId].totalThisMonth %>
+                    </td>
+
+                    <td>
+                      <%= earnings(offers[offerId], offers[offerId].totalThisMonth) %>
+                    </td>
+
+                  </tr>
+                <% } %>
+              <% }) %>
+            </tbody>
+          </table>
+
+          <p>
+            Total earnings this month:
+            <strong>
+              <%= totalEarnings('totalThisMonth') %>
+            </strong>
+          </p>
+
+        </div>
+
+        <div class="content" id="last-month">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Date
+                </td>
+                <td>
+                  User ID
+                </td>
+                <td>
+                  Name
+                </td>
+                <td>
+                  Email
+                </td>
+                <td>
+                  PDF
+                </td>
+                <td>
+                  Offer ID
+                </td>
+                <td>
+                  Offer title
+                </td>
+                <td>
+                  Offer price
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% ordersLastMonth.forEach(function(order, index) { %>
+                <%- include order-row.ejs %>
+              <% }) %>
+            </tbody>
+          </table>
+
+        </div>
+
+        <div class="content" id="totals-last-month">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Offer ID
+                </td>
+                <td>
+                  Price
+                </td>
+                <td>
+                  Number of orders
+                </td>
+                <td>
+                  Earnings
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% Object.keys(offers).forEach(function(offerId) { %>
+                <% if(offers[offerId].totalLastMonth > 0) { %>
+                  <tr>
+                    <td>
+                      <%= offerId %>
+                    </td>
+
+                    <td>
+                      <%= (offers[offerId].amount.total / 100).toFixed(2) %>
+                    </td>
+
+                    <td>
+                      <%= offers[offerId].totalLastMonth %>
+                    </td>
+
+                    <td>
+                      <%= earnings(offers[offerId], offers[offerId].totalLastMonth) %>
+                    </td>
+
+                  </tr>
+                <% } %>
+              <% }) %>
+            </tbody>
+          </table>
+
+          <p>
+            Total earnings last month:
+            <strong>
+              <%= totalEarnings('totalLastMonth') %>
+            </strong>
+          </p>
+
+        </div>
+
+        <div class="content" id="users">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  User ID
+                </td>
+                <td>
+                  Name
+                </td>
+                <td>
+                  Email
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+              <% users.forEach(function(user, index) { %>
+                <tr>
+                  <td>
+                    <%= user.id %>
+                  </td>
+                  <td>
+                    <%= user.name %>
+                  </td>
+                  <td>
+                    <%= user.email %>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+
+        </div>
+
+        <div class="content" id="all-orders">
+
+          <table border="1">
+            <thead>
+              <tr>
+                <td>
+                  Order ID
+                </td>
+                <td>
+                  User ID
+                </td>
+                <td>
+                  Name
+                </td>
+                <td>
+                  Status
+                </td>
+                <td>
+                  Offer price
+                </td>
+              </tr>
+            </thead>
+            <tbody>
+
+              <% allOrders.forEach(function(order, index) { %>
+
+                <tr>
+                  <td>
+                    <%= order.id %>
+                  </td>
+                  <td>
+                    <%= order.customer.id %>
+                  </td>
+                  <td>
+                    <%= order.customer.name %>
+                  </td>
+                  <td>
+                    <%= order.status %>
+                  </td>
+                  <td>
+                    <%= (order.total / 100).toFixed(2) %>
+                  </td>
+                </tr>
+
+              <% }) %>
+
+            </tbody>
+          </table>
+
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="/bower_components/foundation/js/foundation.min.js"></script>
+
+  <script>
+    $(document).foundation({
+      tab: {
+        callback : function (tab) {
+          // tab selected
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

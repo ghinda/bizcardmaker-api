@@ -1,0 +1,12 @@
+#!/bin/bash
+# Download and extract Ghostscript ghostscript-9.14-linux-x86_64
+# in the $OPENSHIFT_DATA_DIR, if it doesn't already exist
+
+cd $OPENSHIFT_DATA_DIR
+
+if [ ! -d "ghostscript-9.14-linux-x86_64" ]; then
+
+  wget http://downloads.ghostscript.com/public/binaries/ghostscript-9.14-linux-x86_64.tgz
+  tar -zxvf ghostscript-9.14-linux-x86_64.tgz
+  
+fi
