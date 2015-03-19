@@ -35,7 +35,7 @@ mock.order = {
       }
     }
   },
-  shipping:  {
+  shipping: {
     name: 'John Doe',
     phone: '15192223333',
     address: {
@@ -54,6 +54,10 @@ mock.order.user = {
   name: 'Test'
 };
 
+var offers = [];
+var offerWithShipping;
+var offerWithoutShipping;
+
 // get the b64 image from a text file
 mock.order.image = fs.readFileSync('./test/b64img.txt').toString();
 
@@ -68,6 +72,58 @@ var testPdfGeneration = function() {
 
 };
 
+var shippingRequests = 0;
+var shippingLoaded = 0;
+var checkShippingLoader = function(done) {
+  shippingLoaded++;
+  
+  if(shippingLoaded === shippingRequests) {
+    done();
+  }
+};
+
+var setShippingRates = function(order, done) {
+  
+  if(!order.offer.amount.shipping_included) {
+    
+    shippingRequests++;
+    
+    agent
+    .post('/api/v1/shipping')
+    .send({
+      offer: order.offer,
+      address: order.shipping.address
+    })
+    .end(function(err, res) {
+      
+      var shippingResponse = JSON.parse(res.text);
+      
+      if(shippingResponse.error) {
+        return console.error(shippingResponse.error);
+      }
+      
+      var rate = shippingResponse.rates[0];
+      
+      order.shipping.rate = {
+        carrier: rate.carrier,
+        service_code: rate.service_code
+      };
+
+      order.billing.amount.shipping = rate.price;
+      order.billing.amount.total += rate.price;
+
+      // set shipping_included=true
+      // because we manually calculated the shipping and total prices
+      order.billing.amount.shipping_included = true;
+      
+      checkShippingLoader(done);
+      
+    });
+    
+  }
+  
+};
+
 describe('POST /api/v1/orders', function () {
 
   before(function(done) {
@@ -78,22 +134,29 @@ describe('POST /api/v1/orders', function () {
 
       var result = JSON.parse(res.text);
 
-      var offer;
+      offers = result.offers;
 
-      // find and offer with shipping shipping
-      // TODO also test shipping not included
-      result.offers.every(function(off) {
-        if(off.amount.shipping_included) {
-          offer = off;
-          return false;
+      // find offers with and without shipping included
+      offers.some(function(offer) {
+        
+        if(offer.amount.shipping_included) {
+          offerWithShipping = offer;
+        } else {
+          offerWithoutShipping = offer;
+        }
+        
+        if(offerWithShipping && offerWithoutShipping) {
+          return true;
         }
 
-        return true;
+        return false;
       });
-
-      mock.order.offer = {};
-      mock.order.offer.id = offer.id;
-      mock.order.billing.amount = offer.amount;
+      
+      var mainOffer = offerWithoutShipping || offerWithShipping;
+      
+      mock.order.offer = mainOffer;
+      mock.order.billing.amount = mainOffer.amount;
+      setShippingRates(mock.order, done);
 
       mock.order2 = JSON.parse(JSON.stringify(mock.order));
       mock.order2.validate_address = true;
@@ -105,6 +168,7 @@ describe('POST /api/v1/orders', function () {
         country: 'United States',
         postal_code: '85705'
       };
+      setShippingRates(mock.order2, done);
 
       mock.order3 = JSON.parse(JSON.stringify(mock.order));
       mock.order3.validate_address = true;
@@ -116,6 +180,7 @@ describe('POST /api/v1/orders', function () {
         country: 'United States',
         postal_code: '98104'
       };
+      setShippingRates(mock.order3, done);
 
       mock.order4 = JSON.parse(JSON.stringify(mock.order));
       mock.order4.validate_address = true;
@@ -127,6 +192,13 @@ describe('POST /api/v1/orders', function () {
         country: 'Canada',
         postal_code: 'R3E 1N7'
       };
+      setShippingRates(mock.order4, done);
+      
+      var secondOffer = offerWithShipping || offerWithoutShipping;
+      
+      mock.order5 = JSON.parse(JSON.stringify(mock.order));
+      mock.order5.offer = secondOffer;
+      setShippingRates(mock.order5, done);
 
       done();
 
@@ -134,11 +206,7 @@ describe('POST /api/v1/orders', function () {
 
   });
 
-  // TODO tests with offers that include shipping
-  // and for ones that don't
-  // that get shipping rates from POST /shipping
-
-  it('should respond with json from order without address validation', function (done) {
+  it('should respond with json from order without address validation and shipping excluded', function (done) {
 
     agent
     .post('/api/v1/orders')
@@ -155,7 +223,7 @@ describe('POST /api/v1/orders', function () {
 
   });
 
-  it('order without address validation should be accepted', function (done) {
+  it('should accept the order without address validation', function (done) {
 
     orderResponse.status.should.equal('Accepted');
 
@@ -197,7 +265,7 @@ describe('POST /api/v1/orders', function () {
 
   });
 
-  it('should make successful order with validated exact address', function (done) {
+  it('should accept an order with a validated exact address', function (done) {
 
     agent
     .post('/api/v1/orders')
@@ -213,46 +281,21 @@ describe('POST /api/v1/orders', function () {
     });
 
   });
+    
+  it('should accept the order with shipping included', function (done) {
 
-// 	it('should respond with list of shipping options', function (done) {
-//
-// 		agent
-// 		.post('/api/v1/shipping')
-// 		.send(mock.shipping)
-// 		.end(function(err, res) {
-//
-// 			var result = JSON.parse(res.text);
-//
-// 			result.rates.should.not.be.empty;
-//
-// 			done();
-//
-// 		});
-//
-// 	});
-//
-// 	it('should have data in all shipping options', function (done) {
-//
-// 		agent
-// 		.post('/api/v1/shipping')
-// 		.send(mock.shipping)
-// 		.end(function(err, res) {
-//
-// 			var result = JSON.parse(res.text);
-//
-// 			result.rates.forEach(function(rate) {
-// 				should.exist(rate.carrier);
-// 				should.exist(rate.service_name);
-// 				should.exist(rate.service_code);
-// 				should.exist(rate.price);
-// 				should.exist(rate.currency);
-// 			});
-//
-// 			done();
-//
-// 		});
-//
-// 	});
+    agent
+    .post('/api/v1/orders')
+    .send(mock.order5)
+    .expect(200)
+    .expect('Content-Type', /application\/json/)
+    .end(function(err, res) {
+
+      done();
+
+    });
+
+  });
 
   // generate the pdf for manual checking
   testPdfGeneration();
