@@ -1,4 +1,4 @@
-# Business Card Maker API
+# Business Card Maker API [![Build Status](https://travis-ci.org/ghinda/bizcardmaker-api.png)](https://travis-ci.org/ghinda/bizcardmaker-api)
 
 It handles:
 
