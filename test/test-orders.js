@@ -225,8 +225,7 @@ describe('POST /api/v1/orders', function () {
   
   var suggestionOrders = [ 
     mock.order2,
-    mock.order3,
-    mock.order4
+    mock.order3
   ];
   
   suggestionOrders.forEach(function(order) {
@@ -267,6 +266,22 @@ describe('POST /api/v1/orders', function () {
     });
     
   });
+  
+  // we don't get suggestions for the it because the address is exact
+  it('should not get address suggestions for the ' + mock.order4.shipping.address.city + ' order', function(done) {
+    
+      agent
+      .post('/api/v1/validate-address')
+      .send(mock.order4.shipping)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+      .end(function(err, res) {
+
+        done();
+
+      });
+      
+    });
 
   it('should respond with json from order without address validation and shipping excluded', function (done) {
 

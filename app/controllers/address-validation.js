@@ -103,8 +103,7 @@ module.exports = (function(config, db) {
       gres.body.results.every(function(result) {
 
         if(result.formatted_address.toLowerCase() === lowercaseAddress) {
-          // found the exact address
-          suggestions = null;
+          // we found the exact address
           return false;
         }
 
@@ -115,8 +114,6 @@ module.exports = (function(config, db) {
 
       if(suggestions.length) {
         
-        res.statusCode = 400;
-        
         // parse suggestions in our format
         suggestions.forEach(function(suggestion, index) {
           suggestions[index] = parseSuggestedAddress(suggestion);
@@ -126,13 +123,17 @@ module.exports = (function(config, db) {
         // just in the case the suggestions are not ok.
         suggestions.push(addressObject);
 
-        res.json({
+        res
+        .status(200)
+        .json({
           suggestions: suggestions
         });
 
       } else {
 
-        res.json(null, {});
+        res
+        .status(200)
+        .json({});
         
       }
 
