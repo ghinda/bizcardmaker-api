@@ -24,9 +24,9 @@
     "superagent": "0.18.x"
   },
   "devDependencies": {
-    "jshint": "^2.5.4",
-    "mocha": "^1.21.x",
-    "should": "^4.0.x",
-    "supertest": "^0.13.x"
+    "jshint": "2.5.4",
+    "mocha": "1.21.4",
+    "should": "4.0.4",
+    "supertest": "0.13.0"
   }
 }
