@@ -54,12 +54,47 @@ mock.order.user = {
   name: 'Test'
 };
 
+// get the b64 image from a text file
+mock.order.image = fs.readFileSync('./test/b64img.txt').toString();
+
+mock.order2 = JSON.parse(JSON.stringify(mock.order));
+//mock.order2.validate_address = true;
+mock.order2.shipping.address = {
+  street: '1200 E University Blvd',
+  street2: '',
+  city: 'Tucson',
+  region: 'AZ',
+  country: 'United States',
+  postal_code: '85721'
+};
+
+mock.order3 = JSON.parse(JSON.stringify(mock.order));
+//mock.order3.validate_address = true;
+mock.order3.shipping.address = {
+  street: '100 MAIN ST',
+  street2: 'PO BOX 1022',
+  city: 'SEATTLE',
+  region: 'WA',
+  country: 'United States',
+  postal_code: '98104'
+};
+
+mock.order4 = JSON.parse(JSON.stringify(mock.order));
+//mock.order4.validate_address = true;
+mock.order4.shipping.address = {
+  street: '901 Logan Avenue',
+  street2: '',
+  city: 'Winnipeg',
+  region: 'MB',
+  country: 'Canada',
+  postal_code: 'R3E 1N7'
+};
+
+mock.order5 = JSON.parse(JSON.stringify(mock.order));
+
 var offers = [];
 var offerWithShipping;
 var offerWithoutShipping;
-
-// get the b64 image from a text file
-mock.order.image = fs.readFileSync('./test/b64img.txt').toString();
 
 var orderResponse = {};
 
@@ -72,21 +107,11 @@ var testPdfGeneration = function() {
 
 };
 
-var shippingRequests = 0;
-var shippingLoaded = 0;
-var checkShippingLoader = function(done) {
-  shippingLoaded++;
+var getShippingRates = function(order, done) {
   
-  if(shippingLoaded === shippingRequests) {
-    done();
-  }
-};
-
-var setShippingRates = function(order, done) {
+  done = done || function(){};
   
   if(!order.offer.amount.shipping_included) {
-    
-    shippingRequests++;
     
     agent
     .post('/api/v1/shipping')
@@ -99,7 +124,17 @@ var setShippingRates = function(order, done) {
       var shippingResponse = JSON.parse(res.text);
       
       if(shippingResponse.error) {
-        return console.error(shippingResponse.error);
+        console.log(shippingResponse, order.shipping);
+        
+        err = shippingResponse.error;
+      }
+      
+      if(shippingResponse.ambiguos_address) {
+        err = shippingResponse;
+      }
+      
+      if(err) {
+        done(err);
       }
       
       var rate = shippingResponse.rates[0];
@@ -116,9 +151,13 @@ var setShippingRates = function(order, done) {
       // because we manually calculated the shipping and total prices
       order.billing.amount.shipping_included = true;
       
-      checkShippingLoader(done);
+      done(null, shippingResponse);
       
     });
+    
+  } else {
+    
+    done();
     
   }
   
@@ -153,57 +192,80 @@ describe('POST /api/v1/orders', function () {
       });
       
       var mainOffer = offerWithoutShipping || offerWithShipping;
-      
-      mock.order.offer = mainOffer;
-      mock.order.billing.amount = mainOffer.amount;
-      setShippingRates(mock.order, done);
 
-      mock.order2 = JSON.parse(JSON.stringify(mock.order));
-      mock.order2.validate_address = true;
-      mock.order2.shipping.address = {
-        street: '795 E DRAGRAM',
-        street2: '',
-        city: 'TUCSON',
-        region: 'AZ',
-        country: 'United States',
-        postal_code: '85705'
-      };
-      setShippingRates(mock.order2, done);
-
-      mock.order3 = JSON.parse(JSON.stringify(mock.order));
-      mock.order3.validate_address = true;
-      mock.order3.shipping.address = {
-        street: '100 MAIN ST',
-        street2: 'PO BOX 1022',
-        city: 'SEATTLE',
-        region: 'WA',
-        country: 'United States',
-        postal_code: '98104'
-      };
-      setShippingRates(mock.order3, done);
-
-      mock.order4 = JSON.parse(JSON.stringify(mock.order));
-      mock.order4.validate_address = true;
-      mock.order4.shipping.address = {
-        street: '901 Logan Avenue',
-        street2: '',
-        city: 'Winnipeg',
-        region: 'MB',
-        country: 'Canada',
-        postal_code: 'R3E 1N7'
-      };
-      setShippingRates(mock.order4, done);
+      Object.keys(mock).forEach(function(key) {
+        
+        mock[key].offer = JSON.parse(JSON.stringify(mainOffer));
+        mock[key].billing.amount = mainOffer.amount;
+        
+      });
       
       var secondOffer = offerWithShipping || offerWithoutShipping;
       
-      mock.order5 = JSON.parse(JSON.stringify(mock.order));
       mock.order5.offer = secondOffer;
-      setShippingRates(mock.order5, done);
+      mock.order5.billing.amount = secondOffer.amount;
 
       done();
 
     });
 
+  });
+  
+  it('should get the shipping rates for the ' + mock.order.shipping.address.city + ' order', function(done) {
+    
+    getShippingRates(mock.order, function(err, res) {
+      
+      res.rates.should.not.be.empty;
+      
+      done();
+      
+    });
+    
+  });
+  
+  var suggestionOrders = [ 
+    mock.order2,
+    mock.order3,
+    mock.order4
+  ];
+  
+  suggestionOrders.forEach(function(order) {
+    
+    it('should get address suggestions for the ' + order.shipping.address.city + ' order', function(done) {
+    
+      agent
+      .post('/api/v1/validate-address')
+      .send(order.shipping)
+      .expect(400)
+      .expect('Content-Type', /application\/json/)
+      .end(function(err, res) {
+
+        res.body.suggestions.should.not.be.empty;
+        
+        order.shipping.address = res.body.suggestions[0];
+
+        done();
+
+      });
+      
+    });
+    
+    it('should get the shipping rates for the ' + order.shipping.address.city + ' order', function(done) {
+      
+      console.log(order.shipping.address);
+      
+      getShippingRates(order, function(err, res) {
+        
+        console.log(err, res);
+        
+        res.rates.should.not.be.empty;
+        
+        done();
+        
+      });
+      
+    });
+    
   });
 
   it('should respond with json from order without address validation and shipping excluded', function (done) {

@@ -249,86 +249,6 @@ module.exports = (function(config, pdf, db, s3) {
 
   };
 
-  var validateAddress = function(params, callback) {
-
-    // lowercase address for comparison
-    var lowercaseAddress = params.address.toLowerCase();
-
-    request
-    .get('https://maps.googleapis.com/maps/api/geocode/json')
-    .query({
-      key: config.googleKey,
-      address: params.address
-    })
-    .end(function(err, res) {
-
-      var suggestions = [];
-
-      // check if one of the results matches the exact address
-      res.body.results.every(function(result) {
-
-        if(result.formatted_address.toLowerCase() === lowercaseAddress) {
-          // found the exact address
-          suggestions = null;
-          return false;
-        }
-
-        suggestions.push(result);
-        return true;
-
-      });
-
-      if(callback) {
-
-        if(suggestions) {
-
-          // add initially used address to suggestions
-          var usedAddress = {
-            address_components: [
-              {
-                long_name: params.addressComponents.street,
-                types: [ 'route' ]
-              },
-              {
-                long_name: params.addressComponents.city,
-                types: [ 'locality' ]
-              },
-              {
-                short_name: params.addressComponents.region,
-                types: [ 'administrative_area_level_1' ]
-              },
-              {
-                long_name: params.addressComponents.postal_code,
-                types: [ 'postal_code' ]
-              },
-              {
-                long_name: params.addressComponents.country,
-                types: [ 'country' ]
-              }
-            ],
-            formatted_address: params.address
-          };
-
-          suggestions.push(usedAddress);
-
-          callback({
-            addressError: {
-              suggestions: suggestions
-            }
-          });
-
-        } else {
-
-          callback(null, {});
-        }
-
-      }
-
-    });
-
-
-  };
-
   var setOrder = function (params, callback) {
 
     request
@@ -604,6 +524,9 @@ module.exports = (function(config, pdf, db, s3) {
           async.waterfall([
             function(callback){
 
+              // TODO remove support for validate_address and 
+              // use a separate request
+              /*
               if(req.body.validate_address) {
 
                 var address = JSON.parse(JSON.stringify(req.body.shipping.address));
@@ -647,10 +570,13 @@ module.exports = (function(config, pdf, db, s3) {
                 });
 
               } else {
+                */
 
-                callback(null, {});
+              callback(null, {});
 
+                /*
               }
+              */
 
             },
             function(address, callback){

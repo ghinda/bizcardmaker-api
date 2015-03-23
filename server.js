@@ -97,6 +97,11 @@ module.exports = (function() {
   var newsletter = require('./app/controllers/newsletter.js')(config, db);
 
   app.post('/newsletter/subscribe', newsletter.subscribe);
+  
+  // address validation
+  
+  var addressValidation = require('./app/controllers/address-validation.js')(config, db);
+  app.post('/api/v1/validate-address', addressValidation.validateAddress);
 
   // start express server
   app.listen(config.port, config.ipAddress, function() {
