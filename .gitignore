@@ -5,8 +5,7 @@
 *.pdf
 
 # data dir
-data/
-*.db
+/data/
 
 # Editor
 .kateproject
@@ -14,5 +13,4 @@ data/
 *.kate-swp
 
 # private configs
-config/private/*
-config.tar
+/config.tar
