@@ -521,124 +521,54 @@ module.exports = (function(config, pdf, db, s3) {
 
           //req.body.files.front = pdf.files.front;
 
-          async.waterfall([
-            function(callback){
+          // make order request with details and PDF url
+          setOrder(req.body, function(order) {
 
-              // TODO remove support for validate_address and 
-              // use a separate request
-              /*
-              if(req.body.validate_address) {
+            if(order.error) {
+              // delete all uploaded files to not take up space
+              deleteFiles(pdf.pdf.concat(pdf.img));
 
-                var address = JSON.parse(JSON.stringify(req.body.shipping.address));
+              return res.status(400).json(order);
+            }
 
-                // format street address for gapi
-                // street 1 + street 2 +,+ city +,+ state + postcode +,+ region
-                var formattedAddress = '';
-                formattedAddress += address.street;
+            // get offer details, to save in local db
+            request
+            .get(config.ipAddress + ':' + config.port + '/api/v1/offers')
+            .end(function(err, response){
 
-                if(address.street2) {
-                  formattedAddress += ' ' + address.street2;
-                }
-
-                formattedAddress += ', ';
-
-                formattedAddress += address.city + ', ';
-                formattedAddress += address.region + ' ';
-                formattedAddress += address.postal_code + ', ';
-
-                // convert to ids that google uses
-                if(address.country === 'United States') {
-                  address.country = 'USA';
-                }
-
-                formattedAddress += address.country;
-
-                // cleanup params
-                delete req.body.validate_address;
-
-                validateAddress({
-                  address: formattedAddress,
-                  addressComponents: address
-                }, function(err, suggestions) {
-
-                  if(err) {
-                    res.statusCode = 400;
-                  }
-
-                  callback(err, suggestions);
-
-                });
-
-              } else {
-                */
-
-              callback(null, {});
-
-                /*
+              if(err) {
+                return false;
               }
-              */
 
-            },
-            function(address, callback){
+              // parse offers
+              response.body.offers.every(function(offer) {
 
-              // make order request with details and PDF url
-              setOrder(req.body, function(order) {
+                // find current offer
+                if(offer.id === req.body.offer.id) {
 
-                if(order.error) {
-                  // delete all uploaded files to not take up space
-                  deleteFiles(pdf.pdf.concat(pdf.img));
+                  // save successful order to db
+                  var orderDoc = {
+                    type: 'order',
+                    result: 'success',
+                    user: user,
+                    offer: offer,
+                    pdf: [ pdf ],
+                    date: new Date()
+                  };
+                  db.insert(orderDoc);
 
-                  res.statusCode = 400;
-                  return callback(order);
+                  return false;
                 }
 
-                // get offer details, to save in local db
-                request
-                .get(config.ipAddress + ':' + config.port + '/api/v1/offers')
-                .end(function(err, response){
-
-                  if(err) {
-                    return false;
-                  }
-
-                  // parse offers
-                  response.body.offers.every(function(offer) {
-
-                    // find current offer
-                    if(offer.id === req.body.offer.id) {
-
-                      // save successful order to db
-                      var orderDoc = {
-                        type: 'order',
-                        result: 'success',
-                        user: user,
-                        offer: offer,
-                        pdf: [ pdf ],
-                        date: new Date()
-                      };
-                      db.insert(orderDoc);
-
-                      return false;
-                    }
-
-                    return true;
-
-                  });
-
-                });
-
-                callback(null, order);
+                return true;
 
               });
 
-            }
-          ],
-          function(err, results) {
+            });
 
-            res.json(results || err);
+            res.json(order);
 
           });
-
 
         });
 
