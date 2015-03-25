@@ -58,7 +58,6 @@ mock.order.user = {
 mock.order.image = fs.readFileSync('./test/b64img.txt').toString();
 
 mock.order2 = JSON.parse(JSON.stringify(mock.order));
-//mock.order2.validate_address = true;
 mock.order2.shipping.address = {
   street: '1200 E University Blvd',
   street2: '',
@@ -69,7 +68,6 @@ mock.order2.shipping.address = {
 };
 
 mock.order3 = JSON.parse(JSON.stringify(mock.order));
-//mock.order3.validate_address = true;
 mock.order3.shipping.address = {
   street: '100 MAIN ST',
   street2: 'PO BOX 1022',
@@ -80,7 +78,6 @@ mock.order3.shipping.address = {
 };
 
 mock.order4 = JSON.parse(JSON.stringify(mock.order));
-//mock.order4.validate_address = true;
 mock.order4.shipping.address = {
   street: '901 Logan Avenue',
   street2: '',
@@ -121,20 +118,15 @@ var getShippingRates = function(order, done) {
     })
     .end(function(err, res) {
       
-      var shippingResponse = JSON.parse(res.text);
+      var shippingResponse = res.body;
       
       if(shippingResponse.error) {
-        console.log(shippingResponse, order.shipping);
-        
-        err = shippingResponse.error;
-      }
-      
-      if(shippingResponse.ambiguos_address) {
-        err = shippingResponse;
+        // TODO ?! the error property is a string
+        err = JSON.parse(shippingResponse.error);
       }
       
       if(err) {
-        done(err);
+        return done(err);
       }
       
       var rate = shippingResponse.rates[0];
@@ -223,67 +215,43 @@ describe('POST /api/v1/orders', function () {
     
   });
   
-  var suggestionOrders = [ 
-    mock.order2,
-    mock.order3
-  ];
-  
-  suggestionOrders.forEach(function(order) {
+  it('should get address candidates for the ' + mock.order2.shipping.address.city + ' order', function(done) {
     
-    it('should get address suggestions for the ' + order.shipping.address.city + ' order', function(done) {
-    
-      agent
-      .post('/api/v1/validate-address')
-      .send(order.shipping)
-      .expect(400)
-      .expect('Content-Type', /application\/json/)
-      .end(function(err, res) {
-
-        res.body.suggestions.should.not.be.empty;
-        
-        order.shipping.address = res.body.suggestions[0];
-
-        done();
-
-      });
+    getShippingRates(mock.order2, function(err, res) {
       
-    });
-    
-    it('should get the shipping rates for the ' + order.shipping.address.city + ' order', function(done) {
+      var candidate = err.candidates[0];
       
-      console.log(order.shipping.address);
+      mock.order2.shipping.address.street = candidate.address;
       
-      getShippingRates(order, function(err, res) {
-        
-        console.log(err, res);
-        
-        res.rates.should.not.be.empty;
-        
-        done();
-        
-      });
+      mock.order2.shipping.address.postal_code = candidate.zipcode;
+      
+      err.candidates.should.not.be.empty;
+      
+      done();
       
     });
     
   });
   
-  // we don't get suggestions for the it because the address is exact
-  it('should not get address suggestions for the ' + mock.order4.shipping.address.city + ' order', function(done) {
+  it('should get shipping rates for the ' + mock.order2.shipping.address.city + ' order', function(done) {
     
-      agent
-      .post('/api/v1/validate-address')
-      .send(mock.order4.shipping)
-      .expect(200)
-      .expect('Content-Type', /application\/json/)
-      .end(function(err, res) {
-
-        done();
-
-      });
+    getShippingRates(mock.order2, function(err, res) {
+      
+      console.log('err=', err);
+      console.log('res=', res);
+      console.log(mock.order2.shipping.address);
+      
+      res.rates.should.not.be.empty;
+      
+      done();
       
     });
+    
+  });
+  
+  return false;
 
-  it('should respond with json from order without address validation and shipping excluded', function (done) {
+  it('should accept the ' + mock.order.shipping.address.city + ' order', function (done) {
 
     agent
     .post('/api/v1/orders')
@@ -291,33 +259,8 @@ describe('POST /api/v1/orders', function () {
     .expect(200)
     .expect('Content-Type', /application\/json/)
     .end(function(err, res) {
-
-      orderResponse = JSON.parse(res.text);
-
-      done();
-
-    });
-
-  });
-
-  it('should accept the order without address validation', function (done) {
-
-    orderResponse.status.should.equal('Accepted');
-
-    done();
-
-  });
-
-  it('should return suggestions for address validation', function (done) {
-
-    agent
-    .post('/api/v1/orders')
-    .send(mock.order2)
-    .end(function(err, res) {
-
-      var result = JSON.parse(res.text);
-
-      result.addressError.suggestions.should.not.be.empty;
+      
+      res.status.should.equal('Accepted');
 
       done();
 
@@ -325,24 +268,7 @@ describe('POST /api/v1/orders', function () {
 
   });
 
-  it('should return suggestions for address validation', function (done) {
-
-    agent
-    .post('/api/v1/orders')
-    .send(mock.order3)
-    .end(function(err, res) {
-
-      var result = JSON.parse(res.text);
-
-      result.addressError.suggestions.should.not.be.empty;
-
-      done();
-
-    });
-
-  });
-
-  it('should accept an order with a validated exact address', function (done) {
+  it('should accept the ' + mock.order4.shipping.address.city + 'order', function (done) {
 
     agent
     .post('/api/v1/orders')
@@ -359,7 +285,7 @@ describe('POST /api/v1/orders', function () {
 
   });
     
-  it('should accept the order with shipping included', function (done) {
+  it('should accept the ' + mock.order5.shipping.address.city + ' order', function (done) {
 
     agent
     .post('/api/v1/orders')
