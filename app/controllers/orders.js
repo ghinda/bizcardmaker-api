@@ -14,158 +14,50 @@ module.exports = (function(config, db) {
 
   var view = function(req, res, next) {
 
-    var offers = {};
-
-    var earnings = function(offer, orders) {
-
-      var multiply = 2;
-      if((offer.amount.total / 100) >= 30) {
-        multiply = 4;
-      }
-
-      return multiply * orders;
-
-    };
-
-    var totalEarnings = function(earning) {
-
-      var total = 0;
-
-      var multiply = 2;
-
-      Object.keys(offers).forEach(function(key) {
-
-        if((offers[key].amount.total / 100) >= 30) {
-          multiply = 4;
-        }
-
-        if(!offers[key][earning]) {
-          offers[key][earning] = 0;
-        }
-
-        total += offers[key][earning] * multiply;
-
-      });
-
-      return total;
-
-    };
-
+    var startDate = req.query.startDate || '';
+    var endDate = req.query.endDate || '';
+    var ordersTotal = 0;
+    
     async.parallel({
       orders: function(callback){
-
-        // get offers
-        request
-        .get(config.ipAddress + ':' + config.port + '/api/v1/offers')
-        .end(function(err, response){
+        
+        var lastThirtyDays = moment().subtract(30, 'days');
+        
+        var dateFilters = {
+          $gte: lastThirtyDays
+        };
+        
+        if(startDate) {
+          dateFilters.$gte = new Date(startDate);
+        } else {
+          startDate = moment(lastThirtyDays).format('YYYY-MM-DD');
+        }
+        
+        if(endDate) {
+          dateFilters.$lte = new Date(endDate); 
+        } else {
+          endDate = moment().format('YYYY-MM-DD');
+        }
+        
+        db
+        .find({
+          type: 'order',
+          result: 'success',
+          date: dateFilters
+        })
+        .sort({
+          date: -1
+        })
+        .exec(function (err, orders) {
 
           if(err) {
             return callback(err);
           }
 
-          response.body.offers.forEach(function(offer) {
-            offers[offer.id] = offer;
-          });
-
-          async.parallel({
-            orders: function(callback){
-
-              // last 30 days
-              db.find({
-                type: 'order',
-                result: 'success',
-                date: { $gte: moment().subtract(30, 'days') }
-              }).sort({
-                date: -1
-              }).exec(function (err, orders) {
-
-                if(err) {
-                  return callback(err);
-                }
-
-                callback(err, orders);
-
-              });
-
-            },
-            month: function(callback) {
-
-              // this month
-              db.find({
-                type: 'order',
-                result: 'success',
-                date: {
-                  $gte: moment().date(1)
-                  //$gte: moment().subtract(1, 'months')
-                }
-              }).sort({
-                date: -1
-              }).exec(function (err, month) {
-
-                if(err) {
-                  return callback(err);
-                }
-
-                month.forEach(function(m) {
-                  // if first offer with this id
-                  if(!offers[m.offer.id]) {
-                    offers[m.offer.id] = m.offer;
-                    offers[m.offer.id].totalThisMonth = 0;
-                  }
-
-                  if(!offers[m.offer.id].totalThisMonth) {
-                    offers[m.offer.id].totalThisMonth = 0;
-                  }
-
-                  offers[m.offer.id].totalThisMonth++;
-                });
-
-                callback(err, month);
-
-              });
-
-            },
-            lastMonth: function(callback) {
-
-              // last month
-              db.find({
-                type: 'order',
-                result: 'success',
-                date: {
-                  $gte: moment().subtract(1, 'months').date(1),
-                  $lte: moment().subtract(1, 'months').endOf('month')
-                }
-              }).sort({
-                date: -1
-              }).exec(function (err, lastMonth) {
-
-                if(err) {
-                  return callback(err);
-                }
-
-                lastMonth.forEach(function(m) {
-                  // if first offer with this id
-                  if(!offers[m.offer.id]) {
-                    offers[m.offer.id] = m.offer;
-                    offers[m.offer.id].totalLastMonth = 0;
-                  }
-
-                  if(!offers[m.offer.id].totalLastMonth) {
-                    offers[m.offer.id].totalLastMonth = 0;
-                  }
-
-                  offers[m.offer.id].totalLastMonth++;
-                });
-
-                callback(err, lastMonth);
-
-              });
-
-            }
-          }, function(err, res) {
-
-            callback(err, res);
-
+          callback(err, orders);
+          
+          orders.forEach(function(order) {
+            ordersTotal += order.billing.total;
           });
 
         });
@@ -205,17 +97,15 @@ module.exports = (function(config, db) {
       }
 
       res.render('orders', {
+        startDate: startDate,
+        endDate: endDate,
+        
         allOrders: results.allOrders,
 
-        orders: results.orders.orders,
-        ordersThisMonth: results.orders.month,
-        ordersLastMonth: results.orders.lastMonth,
+        orders: results.orders,
+        ordersTotal: ordersTotal,
 
         users: results.users,
-        offers: offers,
-
-        earnings: earnings,
-        totalEarnings: totalEarnings,
 
         moment: moment,
         Object: Object

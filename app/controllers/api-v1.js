@@ -541,7 +541,7 @@ module.exports = (function(config, pdf, db, s3) {
               }
 
               // parse offers
-              response.body.offers.every(function(offer) {
+              response.body.offers.some(function(offer) {
 
                 // find current offer
                 if(offer.id === req.body.offer.id) {
@@ -552,15 +552,17 @@ module.exports = (function(config, pdf, db, s3) {
                     result: 'success',
                     user: user,
                     offer: offer,
+                    shipping: req.body.shipping,
+                    billing: req.body.billing.amount,
                     pdf: [ pdf ],
                     date: new Date()
                   };
                   db.insert(orderDoc);
 
-                  return false;
+                  return true;
                 }
 
-                return true;
+                return false;
 
               });
 

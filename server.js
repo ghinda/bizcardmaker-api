@@ -68,11 +68,11 @@ module.exports = (function() {
   });
 
   // datastore
-  var Datastore = require('nedb'),
-    db = new Datastore({
-      filename: config.dataDir + config.dbDir + '/bizcardmaker.db',
-      autoload: true
-    });
+  var Datastore = require('nedb');
+  var db = new Datastore({
+    filename: config.dataDir + config.dbDir + '/bizcardmaker.db',
+    autoload: true
+  });
 
   // pdf generation
   var pdf = require('./app/controllers/pdf.js')(config);

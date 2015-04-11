@@ -17,6 +17,10 @@
     .row {
       max-width: 1120px;
     }
+    
+    td {
+      max-width: 250px;
+    }
 
   </style>
 
@@ -38,28 +42,8 @@
 
       <dl class="tabs" data-tab>
         <dd class="active">
-          <a href="#days30">
-            Last 30 days
-          </a>
-        </dd>
-        <dd>
-          <a href="#this-month">
-            This month
-          </a>
-        </dd>
-        <dd>
-          <a href="#totals-this-month">
-            Totals this month
-          </a>
-        </dd>
-        <dd>
-          <a href="#last-month">
-            Last month
-          </a>
-        </dd>
-        <dd>
-          <a href="#totals-last-month">
-            Totals last month
+          <a href="#orders">
+            Orders
           </a>
         </dd>
         <dd>
@@ -69,236 +53,175 @@
         </dd>
         <dd>
           <a href="#all-orders">
-            All orders
+            Printchomp orders
           </a>
         </dd>
       </dl>
 
       <div class="tabs-content">
 
-        <div class="content active" id="days30">
+        <div class="content active" id="orders">
+        
+          <form action="/orders" class="form-filter">
+            <fieldset>
+              <legend>
+                Filter orders
+              </legend>
+              <div class="row">
+                <div class="large-4 columns">
+                  
+                  <div class="row">
+                    <div class="small-3 columns">
+                      <label for="startDate" class="right inline">
+                        Start date
+                      </label>
+                    </div>
+                    <div class="small-9 columns">
+                      <input type="date" id="startDate" name="startDate" value="<%= startDate %>" class="field-start-date">
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class="large-4 columns">
+                  
+                  <div class="row">
+                    <div class="small-3 columns">
+                      <label for="endDate" class="right inline">
+                        End date
+                      </label>
+                    </div>
+                    <div class="small-9 columns">
+                      <input type="date" id="endDate" name="endDate" value="<%= endDate %>" class="field-end-date">
+                    </div>
+                  </div>
+                  
+                </div>
+                <div class="large-4 columns">
+                  <button type="submit" class="button small">
+                    Filter
+                  </button>
+                </div>
+              </div>
+              
+              <ul class="button-group">
+                <li>
+                  <a class="button small secondary btn-all-orders">
+                    All orders
+                  </a>
+                </li>
+                <li>
+                  <a href="/orders" class="button small secondary btn-last-30-days">
+                    Last 30 days
+                  </a>
+                </li>
+                <li>
+                  <a class="button small secondary btn-this-month">
+                    This month
+                  </a>
+                </li>
+                <li>
+                  <a class="button small secondary btn-last-month">
+                    Last month
+                  </a>
+                </li>
+              </ul>
+              
+            </fieldset>
+            
+          </form>
 
           <table border="1">
             <thead>
               <tr>
+                <td></td>
                 <td>
                   Date
                 </td>
                 <td>
-                  User ID
-                </td>
-                <td>
-                  Name
-                </td>
-                <td>
-                  Email
+                  User
                 </td>
                 <td>
                   PDF
                 </td>
                 <td>
-                  Offer ID
+                  Offer
                 </td>
                 <td>
-                  Offer title
-                </td>
-                <td>
-                  Offer price
+                  Price
                 </td>
               </tr>
             </thead>
             <tbody>
+            
               <% orders.forEach(function(order, index) { %>
-                <%- include order-row.ejs %>
+                <tr>
+                  <td>
+                    <%= orders.length - index %>
+                  </td>
+                  <td>
+                    <span title="<%= order.date %>">
+                      <%= moment(order.date).format('YYYY-MM-DD') %>
+                    </span>
+                  </td>
+                  <td>
+                    <div>
+                      <i>
+                        <%= order.user.id %>
+                      </i>
+                    </div>
+                    <strong>
+                      <%= order.user.name %>
+                    </strong>
+                    <div>
+                      <%= order.user.email %>
+                    </div>
+                  </td>
+                  <td>
+                    <% order.pdf.forEach(function(pdf, index) { %>
+                      <a href="<%= pdf.url || pdf.uri %>" target="_blank">
+                        PDF
+                      </a>
+                    <% }) %>
+                  </td>
+                  <td>
+                    <i>
+                      <%= order.offer.id %>
+                    </i>
+                    <div>
+                      <%= order.offer.title %>
+                    </div>
+                  </td>
+                  <td>
+                    <div>
+                        Offer: 
+                      <strong>
+                      <%= (order.billing.price / 100).toFixed(2) %>
+                      </strong>
+                    </div>
+                    <div>
+                        Shipping: 
+                      <strong>
+                      <%= (order.billing.shipping / 100).toFixed(2) %>
+                      </strong>
+                    </div>
+                    <div>
+                        Total: 
+                      <strong>
+                      <%= (order.billing.total / 100).toFixed(2) %>
+                      <%= order.billing.currency %>
+                      </strong>
+                    </div>
+                  </td>
+                </tr>
               <% }) %>
+              
             </tbody>
           </table>
-
-        </div>
-
-        <div class="content" id="this-month">
-
-          <table border="1">
-            <thead>
-              <tr>
-                <td>
-                  Date
-                </td>
-                <td>
-                  User ID
-                </td>
-                <td>
-                  Name
-                </td>
-                <td>
-                  Email
-                </td>
-                <td>
-                  PDF
-                </td>
-                <td>
-                  Offer ID
-                </td>
-                <td>
-                  Offer title
-                </td>
-                <td>
-                  Offer price
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <% ordersThisMonth.forEach(function(order, index) { %>
-                <%- include order-row.ejs %>
-              <% }) %>
-            </tbody>
-          </table>
-
-        </div>
-
-        <div class="content" id="totals-this-month">
-
-          <table border="1">
-            <thead>
-              <tr>
-                <td>
-                  Offer ID
-                </td>
-                <td>
-                  Price
-                </td>
-                <td>
-                  Number of orders
-                </td>
-                <td>
-                  Earnings
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <% Object.keys(offers).forEach(function(offerId) { %>
-                <% if(offers[offerId].totalThisMonth > 0) { %>
-                  <tr>
-                    <td>
-                      <%= offerId %>
-                    </td>
-
-                    <td>
-                      <%= (offers[offerId].amount.total / 100).toFixed(2) %>
-                    </td>
-
-                    <td>
-                      <%= offers[offerId].totalThisMonth %>
-                    </td>
-
-                    <td>
-                      <%= earnings(offers[offerId], offers[offerId].totalThisMonth) %>
-                    </td>
-
-                  </tr>
-                <% } %>
-              <% }) %>
-            </tbody>
-          </table>
-
+          
           <p>
-            Total earnings this month:
+            Orders total:
             <strong>
-              <%= totalEarnings('totalThisMonth') %>
-            </strong>
-          </p>
-
-        </div>
-
-        <div class="content" id="last-month">
-
-          <table border="1">
-            <thead>
-              <tr>
-                <td>
-                  Date
-                </td>
-                <td>
-                  User ID
-                </td>
-                <td>
-                  Name
-                </td>
-                <td>
-                  Email
-                </td>
-                <td>
-                  PDF
-                </td>
-                <td>
-                  Offer ID
-                </td>
-                <td>
-                  Offer title
-                </td>
-                <td>
-                  Offer price
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <% ordersLastMonth.forEach(function(order, index) { %>
-                <%- include order-row.ejs %>
-              <% }) %>
-            </tbody>
-          </table>
-
-        </div>
-
-        <div class="content" id="totals-last-month">
-
-          <table border="1">
-            <thead>
-              <tr>
-                <td>
-                  Offer ID
-                </td>
-                <td>
-                  Price
-                </td>
-                <td>
-                  Number of orders
-                </td>
-                <td>
-                  Earnings
-                </td>
-              </tr>
-            </thead>
-            <tbody>
-              <% Object.keys(offers).forEach(function(offerId) { %>
-                <% if(offers[offerId].totalLastMonth > 0) { %>
-                  <tr>
-                    <td>
-                      <%= offerId %>
-                    </td>
-
-                    <td>
-                      <%= (offers[offerId].amount.total / 100).toFixed(2) %>
-                    </td>
-
-                    <td>
-                      <%= offers[offerId].totalLastMonth %>
-                    </td>
-
-                    <td>
-                      <%= earnings(offers[offerId], offers[offerId].totalLastMonth) %>
-                    </td>
-
-                  </tr>
-                <% } %>
-              <% }) %>
-            </tbody>
-          </table>
-
-          <p>
-            Total earnings last month:
-            <strong>
-              <%= totalEarnings('totalLastMonth') %>
+              <%= (ordersTotal / 100).toFixed(2) %>
             </strong>
           </p>
 
@@ -397,6 +320,7 @@
 
   <script src="/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="/bower_components/foundation/js/foundation.min.js"></script>
+  <script src="/bower_components/momentjs/min/moment.min.js"></script>
 
   <script>
     $(document).foundation({
@@ -406,6 +330,40 @@
         }
       }
     });
+    
+    var $filterForm = $('.form-filter');
+    var $startDate = $('.field-start-date');
+    var $endDate = $('.field-end-date');
+    
+    var today = moment().format('YYYY-MM-DD');
+    
+    $('.btn-all-orders').on('click', function() {
+    
+      $startDate.val('1970-01-01');
+      $endDate.val(today);
+      
+      $filterForm.submit();
+    
+    });
+    
+    $('.btn-this-month').on('click', function() {
+    
+      $startDate.val( moment().startOf('month').format('YYYY-MM-DD') );
+      $endDate.val(today);
+      
+      $filterForm.submit();
+    
+    });
+    
+    $('.btn-last-month').on('click', function() {
+    
+      $startDate.val( moment().subtract(1, 'months').startOf('month').format('YYYY-MM-DD') );
+      $endDate.val( moment().subtract(1,'months').endOf('month').format('YYYY-MM-DD') );
+      
+      $filterForm.submit();
+    
+    });
+    
   </script>
 
 </body>

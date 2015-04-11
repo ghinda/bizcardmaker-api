@@ -2,6 +2,7 @@
   "name": "bizcardmaker-api",
   "version": "0.0.0",
   "dependencies": {
-    "foundation": "~5.x"
+    "foundation": "~5.x",
+    "momentjs": "~2.10.2"
   }
 }
