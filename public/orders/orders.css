@@ -23,6 +23,7 @@ td {
 }
 
 .pinned table {
+  table-layout: fixed;
   border-color: #ddd;
 }
 
