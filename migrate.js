@@ -1,3 +1,7 @@
+/* migrate db order format to include shipping and billing details
+ * on older orders.
+ */
+
 var request = require('superagent');
 var config = require('./config/config.js');
 

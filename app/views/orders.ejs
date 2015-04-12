@@ -3,27 +3,16 @@
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>bizcardmaker api</title>
+  <meta name=viewport content="width=device-width,initial-scale=1">
+  <title>
+    bizcardmaker api
+  </title>
 
   <link rel="stylesheet" href="/bower_components/foundation/css/normalize.css">
   <link rel="stylesheet" href="/bower_components/foundation/css/foundation.css">
-
-  <style>
-
-    table {
-      width: 100%;
-    }
-
-    .row {
-      max-width: 1120px;
-    }
-    
-    td {
-      max-width: 250px;
-    }
-
-  </style>
-
+  <link rel="stylesheet" href="/responsive-tables/responsive-tables.css">
+  
+  <link rel="stylesheet" href="/orders/orders.css">
 </head>
 <body>
 
@@ -31,106 +20,120 @@
     <ul class="title-area">
       <li class="name">
         <h1>
-          <a href="/">bizcardmaker API</a>
+          <a href="/orders">
+            bizcardmaker API
+          </a>
         </h1>
       </li>
+      <li class="toggle-topbar menu-icon">
+        <a href="#"><span></span></a>
+      </li>
     </ul>
+    
+    <section class="top-bar-section">
+      <ul class="right" data-tab>
+        <li class="active">
+          <a href="#orders">
+            Orders
+          </a>
+        </li>
+        <li>
+          <a href="#users">
+            Users
+          </a>
+        </li>
+        <li>
+          <a href="#printchomp-orders">
+            Printchomp Orders
+          </a>
+        </li>
+      </ul>
+    </section>
   </nav>
 
   <div class="row">
     <div class="small-12 columns">
 
-      <dl class="tabs" data-tab>
-        <dd class="active">
-          <a href="#orders">
-            Orders
-          </a>
-        </dd>
-        <dd>
-          <a href="#users">
-            Users
-          </a>
-        </dd>
-        <dd>
-          <a href="#all-orders">
-            Printchomp orders
-          </a>
-        </dd>
-      </dl>
-
       <div class="tabs-content">
 
         <div class="content active" id="orders">
         
-          <form action="/orders" class="form-filter">
-            <fieldset>
-              <legend>
+          <ul class="accordion" data-accordion>
+            <li class="accordion-navigation">
+              <a href="#filters">
                 Filter orders
-              </legend>
-              <div class="row">
-                <div class="large-4 columns">
+              </a>
+                
+                <form id="filters" action="/orders" class="content form-filter">
                   
-                  <div class="row">
-                    <div class="small-3 columns">
-                      <label for="startDate" class="right inline">
-                        Start date
-                      </label>
-                    </div>
-                    <div class="small-9 columns">
-                      <input type="date" id="startDate" name="startDate" value="<%= startDate %>" class="field-start-date">
-                    </div>
-                  </div>
+                  <fieldset>
                   
-                </div>
-                <div class="large-4 columns">
-                  
-                  <div class="row">
-                    <div class="small-3 columns">
-                      <label for="endDate" class="right inline">
-                        End date
-                      </label>
+                    <div class="row">
+                      <div class="large-6 columns">
+                        
+                        <div class="row">
+                          <div class="small-3 columns">
+                            <label for="startDate" class="right inline">
+                              Start date
+                            </label>
+                          </div>
+                          <div class="small-9 columns">
+                            <input type="date" id="startDate" name="startDate" value="<%= startDate %>" class="field-start-date">
+                          </div>
+                        </div>
+                        
+                        <div class="row">
+                          <div class="small-3 columns">
+                            <label for="endDate" class="right inline">
+                              End date
+                            </label>
+                          </div>
+                          <div class="small-9 columns">
+                            <input type="date" id="endDate" name="endDate" value="<%= endDate %>" class="field-end-date">
+                          </div>
+                        </div>
+                        
+                        <button type="submit" class="button small right">
+                          Filter
+                        </button>
+                        
+                      </div>
+                      
+                      <div class="large-6 columns">
+                    
+                        <ul class="button-group">
+                          <li>
+                            <a class="button small secondary btn-all-orders">
+                              All orders
+                            </a>
+                          </li>
+                          <li>
+                            <a href="/orders" class="button small secondary btn-last-30-days">
+                              Last 30 days
+                            </a>
+                          </li>
+                          <li>
+                            <a class="button small secondary btn-this-month">
+                              This month
+                            </a>
+                          </li>
+                          <li>
+                            <a class="button small secondary btn-last-month">
+                              Last month
+                            </a>
+                          </li>
+                        </ul>
+                    
+                      </div>
                     </div>
-                    <div class="small-9 columns">
-                      <input type="date" id="endDate" name="endDate" value="<%= endDate %>" class="field-end-date">
-                    </div>
-                  </div>
-                  
-                </div>
-                <div class="large-4 columns">
-                  <button type="submit" class="button small">
-                    Filter
-                  </button>
-                </div>
-              </div>
-              
-              <ul class="button-group">
-                <li>
-                  <a class="button small secondary btn-all-orders">
-                    All orders
-                  </a>
-                </li>
-                <li>
-                  <a href="/orders" class="button small secondary btn-last-30-days">
-                    Last 30 days
-                  </a>
-                </li>
-                <li>
-                  <a class="button small secondary btn-this-month">
-                    This month
-                  </a>
-                </li>
-                <li>
-                  <a class="button small secondary btn-last-month">
-                    Last month
-                  </a>
-                </li>
-              </ul>
-              
-            </fieldset>
-            
-          </form>
+                    
+                  </fieldset>
+                </form>
+                    
+            </li>
+          </ul>
 
-          <table border="1">
+          <table border="1" class="responsive">
             <thead>
               <tr>
                 <td></td>
@@ -219,7 +222,7 @@
           </table>
           
           <p>
-            Orders total:
+            Total:
             <strong>
               <%= (ordersTotal / 100).toFixed(2) %>
             </strong>
@@ -229,7 +232,7 @@
 
         <div class="content" id="users">
 
-          <table border="1">
+          <table border="1" class="responsive">
             <thead>
               <tr>
                 <td>
@@ -262,9 +265,9 @@
 
         </div>
 
-        <div class="content" id="all-orders">
+        <div class="content" id="printchomp-orders">
 
-          <table border="1">
+          <table border="1" class="responsive">
             <thead>
               <tr>
                 <td>
@@ -320,51 +323,12 @@
 
   <script src="/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="/bower_components/foundation/js/foundation.min.js"></script>
+  <script src="/bower_components/fastclick/lib/fastclick.js"></script>
   <script src="/bower_components/momentjs/min/moment.min.js"></script>
+  <script src="/responsive-tables/responsive-tables.js"></script>
 
-  <script>
-    $(document).foundation({
-      tab: {
-        callback : function (tab) {
-          // tab selected
-        }
-      }
-    });
-    
-    var $filterForm = $('.form-filter');
-    var $startDate = $('.field-start-date');
-    var $endDate = $('.field-end-date');
-    
-    var today = moment().format('YYYY-MM-DD');
-    
-    $('.btn-all-orders').on('click', function() {
-    
-      $startDate.val('1970-01-01');
-      $endDate.val(today);
-      
-      $filterForm.submit();
-    
-    });
-    
-    $('.btn-this-month').on('click', function() {
-    
-      $startDate.val( moment().startOf('month').format('YYYY-MM-DD') );
-      $endDate.val(today);
-      
-      $filterForm.submit();
-    
-    });
-    
-    $('.btn-last-month').on('click', function() {
-    
-      $startDate.val( moment().subtract(1, 'months').startOf('month').format('YYYY-MM-DD') );
-      $endDate.val( moment().subtract(1,'months').endOf('month').format('YYYY-MM-DD') );
-      
-      $filterForm.submit();
-    
-    });
-    
-  </script>
+  <script src="/orders/orders.js"></script>
+  <script src="/orders/orders.js"></script>
 
 </body>
 </html>

@@ -1,0 +1,39 @@
+table {
+  width: 100%;
+}
+
+.row {
+  max-width: 1120px;
+}
+
+td {
+  max-width: 250px;
+}
+
+.accordion {
+  margin: 0 0 1rem;
+}
+
+.accordion .accordion-navigation > .content {
+  padding: 0;
+}
+
+.accordion fieldset {
+  margin: 0;
+}
+
+.pinned table {
+  border-color: #ddd;
+}
+
+div.table-wrapper div.pinned {
+  width: 20%;
+}
+
+div.table-wrapper div.scrollable {
+  margin-left: 20%;
+}
+
+.button-group > li .button {
+  margin-bottom: 1px;
+}
