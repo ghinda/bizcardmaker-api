@@ -1,13 +1,16 @@
 
-module.exports = function(res, fn){
+module.exports = function parseJSON(res, fn){
   res.text = '';
   res.setEncoding('utf8');
-  res.on('data', function(chunk){ res.text += chunk; });
+  res.on('data', function(chunk){ res.text += chunk;});
   res.on('end', function(){
     try {
-      fn(null, JSON.parse(res.text));
-    } catch (err) {
-      fn(err);
+      var text = res.text && res.text.replace(/^\s*|\s*$/g, '');
+      var body = text && JSON.parse(text);
+    } catch (e) {
+      var err = e;
+    } finally {
+      fn(err, body);
     }
   });
 };

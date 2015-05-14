@@ -38,6 +38,35 @@ module.exports = (function(config, pdf, db, s3) {
       return callback(authorization);
     }
 
+    var http = require('http');
+
+    var data = JSON.stringify({
+      grant_type: 'client_credentials',
+      client_id: config.appId,
+      client_secret: config.secret
+    });
+    
+    var req = http.request({
+      host: 'www.printchomp.com',
+      path: '/oauth/token',
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': data.length
+      }
+    }, function(res) {
+      
+      res.on('data', function (chunk) {
+          console.log('Response: ' + chunk);
+      });
+      
+    });
+    
+    req.write(data);
+    req.end();
+    
+    return false;
+    
     // get oauth token
     request
     .post(config.apiUrl + '/oauth/token')
@@ -48,6 +77,8 @@ module.exports = (function(config, pdf, db, s3) {
     })
     .end(function(err, res){
 
+      console.log(res);
+      
       if(err) {
         return callback({
           error: err
@@ -62,6 +93,8 @@ module.exports = (function(config, pdf, db, s3) {
     });
 
   };
+  
+  getAuthorization(function(){});
 
   var getUser = function(params, callback) {
 
