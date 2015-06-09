@@ -10,7 +10,7 @@ module.exports = (function() {
   var config = {
 
     // printchomp
-    apiUrl: 'https://sandbox.printchomp.com',
+    apiUrl: 'https://staging.printchomp.com',
 
     // card details
     card: [ 3.75, 2.25 ],

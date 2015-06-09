@@ -82,6 +82,7 @@ module.exports = (function() {
 
   app.get('/api/v1/users', apiv1.users);
   app.get('/api/v1/offers', apiv1.offers);
+  app.get('/api/v1/order/:id', apiv1.order);
   app.post('/api/v1/shipping', apiv1.shipping);
   app.post('/api/v1/orders', apiv1.orders);
 

@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "dependencies": {
     "foundation": "5.5.1",
-    "momentjs": "2.10.2"
+    "momentjs": "2.10.2",
+    "json-human": "*"
   }
 }

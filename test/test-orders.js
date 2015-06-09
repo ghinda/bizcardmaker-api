@@ -248,8 +248,6 @@ describe('POST /api/v1/orders', function () {
     });
     
   });
-  
-  return false;
 
   it('should accept the ' + mock.order.shipping.address.city + ' order', function (done) {
 

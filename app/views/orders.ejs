@@ -284,6 +284,9 @@
                 <td>
                   Offer price
                 </td>
+                <td>
+                  
+                </td>
               </tr>
             </thead>
             <tbody>
@@ -306,6 +309,11 @@
                   <td>
                     <%= (order.total / 100).toFixed(2) %>
                   </td>
+                  <td>
+                    <button type="button" class="button secondary small  js-btn-order-details" data-id="<%= order.id %>">
+                      Details
+                    </button>
+                  </td>
                 </tr>
 
               <% }) %>
@@ -319,11 +327,17 @@
 
     </div>
   </div>
+  
+  <div class="reveal-modal js-modal-order-details" data-reveal>
+    <ul class="js-modal-content"></ul>
+    <a class="close-reveal-modal" aria-label="Close">&#215;</a>
+  </div>
 
   <script src="/bower_components/jquery/dist/jquery.min.js"></script>
   <script src="/bower_components/foundation/js/foundation.min.js"></script>
   <script src="/bower_components/fastclick/lib/fastclick.js"></script>
   <script src="/bower_components/momentjs/min/moment.min.js"></script>
+  <script src="/bower_components/json-human/src/json.human.js"></script>
 
   <script src="/orders/orders.js"></script>
 

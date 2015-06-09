@@ -1,0 +1,16 @@
+{
+  "name": "json-human",
+  "main": "./src/json.human.js",
+  "dependencies": {},
+  "homepage": "https://github.com/marianoguerra/json.human.js",
+  "_release": "0fbfda331c",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "0fbfda331c2d347ebc8445cdb0c083c33b57029f"
+  },
+  "_source": "git://github.com/marianoguerra/json.human.js.git",
+  "_target": "*",
+  "_originalSource": "json-human",
+  "_direct": true
+}

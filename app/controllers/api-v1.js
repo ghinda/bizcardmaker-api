@@ -284,10 +284,9 @@ module.exports = (function(config, pdf, db, s3) {
 
   };
 
-
   // get list of all orders
   var getAllOrders = function (params, callback) {
-
+    
     request
     .get(config.apiUrl + '/api/v1/orders')
     .buffer(true)
@@ -578,6 +577,47 @@ module.exports = (function(config, pdf, db, s3) {
     });
 
   };
+  
+  var order = function(req, res, next) {
+
+    getAuthorization(function() {
+
+      // get offers
+      request
+      .get(config.apiUrl + '/api/v1/orders/' + req.params.id)
+      .buffer(true)
+      .set('Authorization', authorization)
+      .end(function(err, order){
+        
+        console.log(err);
+
+        if(err) {
+          res.status(400).json({
+            error: err
+          });
+        }
+
+        var response = {};
+        try {
+          response = JSON.parse(order.text);
+        } catch(e) {
+          response.message = config.errors.printchomp;
+        }
+
+        // handle errors
+        if(errorStatus(order)) {
+          res.status(400).json({
+            error: response.message
+          });
+        }
+
+        res.json(response);
+
+      });
+
+    });
+
+  };
 
   var allUsers = function(req, res, next) {
 
@@ -640,6 +680,7 @@ module.exports = (function(config, pdf, db, s3) {
     offers: offers,
     shipping: shipping,
     orders: orders,
+    order: order,
     allOrders: allOrders
   };
 
