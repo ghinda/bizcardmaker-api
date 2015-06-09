@@ -592,7 +592,7 @@ module.exports = (function(config, pdf, db, s3) {
         console.log(err);
 
         if(err) {
-          res.status(400).json({
+          return res.status(400).json({
             error: err
           });
         }
@@ -606,7 +606,7 @@ module.exports = (function(config, pdf, db, s3) {
 
         // handle errors
         if(errorStatus(order)) {
-          res.status(400).json({
+          return res.status(400).json({
             error: response.message
           });
         }
@@ -663,7 +663,21 @@ module.exports = (function(config, pdf, db, s3) {
       }, function (response) {
 
         if(response.error) {
-          res.statusCode = 400;
+          
+          // TODO !? the error message is a nested stringified json
+          // from the Printchomp API.
+          var parsedError = JSON.parse(response.error.response.text);
+          
+          // TODO ?! SOMETIMES the message property contains another nested
+          // stringified JSON.
+          // other times it's just a string. ?!
+          try {
+            parsedError = JSON.parse(parsedError.message);
+          } catch(e) {
+            parsedError = parsedError.message;
+          }
+          
+          return res.status(response.error.status).json(parsedError);
         }
 
         res.json(response);
