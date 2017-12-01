@@ -1,5 +1,6 @@
 .tmp
 .sass-cache
+node_modules/
 
 # PDFs
 *.pdf
